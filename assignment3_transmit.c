@@ -27,10 +27,10 @@ static void send(char message[], int size){
 	// In decimal, if node ID is 47620, this maps to 186 (higher byte) AND 4 (lower byte)
 	// JY's node is 2533 (decimal) = 0x9E5 (LOW BYTE 229, HIGH BYTE 9)
 	addr.u8[0] = 9; // HIGH BYTE or 186 in decimal (186 is 0xBA)
-    addr.u8[1] = 229; // LOW BYTE or 4 in decimal
-    if(!linkaddr_cmp(&addr, &linkaddr_node_addr)) {
-        unicast_send(&uc, &addr);
-    }
+    	addr.u8[1] = 229; // LOW BYTE or 4 in decimal
+    	if(!linkaddr_cmp(&addr, &linkaddr_node_addr)) {
+        	unicast_send(&uc, &addr);
+    	}
 
 }
 

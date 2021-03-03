@@ -3,7 +3,9 @@
 #include "board-peripherals.h"
 #include <stdio.h>
 #include "net/rime/rime.h"
-#include <stdio.h>
+#include "sys/etimer.h"
+#include "sys/rtimer.h"
+#include <stdint.h>
 /*---------------------------------------------------------------------------*/
 
 static char message[50];
@@ -23,8 +25,9 @@ static void send(char message[], int size){
 
 	// COMPUTE THE ADDRESS OF THE RECEIVER FROM ITS NODE ID, FOR EXAMPLE NODEID 0xBA04 MAPS TO 0xBA AND 0x04 RESPECTIVELY
 	// In decimal, if node ID is 47620, this maps to 186 (higher byte) AND 4 (lower byte)
-	addr.u8[0] = 186; // HIGH BYTE or 186 in decimal (186 is 0xBA) TODO: CHANGE
-    addr.u8[1] = 4; // LOW BYTE or 4 in decimal TODO: CHANGE
+	// JY's node is 2533 (decimal) = 0x9E5 (LOW BYTE 229, HIGH BYTE 9)
+	addr.u8[0] = 9; // HIGH BYTE or 186 in decimal (186 is 0xBA)
+    addr.u8[1] = 229; // LOW BYTE or 4 in decimal
     if(!linkaddr_cmp(&addr, &linkaddr_node_addr)) {
         unicast_send(&uc, &addr);
     }
@@ -37,11 +40,17 @@ PROCESS_THREAD(transmit_process, ev, data) {
 	PROCESS_BEGIN();
 	unicast_open(&uc, 146, &unicast_callbacks);
 
+	// Initialize relevant structures/variables
+	static struct etimer timer_etimer;
 	packetCounter = 1;
 
-	// Just keep sending packets
-    while (1) {
-        send(packetCounter, sizeof(packetCounter))
+    while(1) {
+        etimer_set(&timer_etimer, CLOCK_SECOND/4); // 10 seconds
+        PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
+        char message[50];
+        sprintf(message, "%d", packetCounter);
+        printf("Sending packet", packetCounter);
+        send(message, sizeof(message));
         packetCounter++;
     }
 
